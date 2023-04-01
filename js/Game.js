@@ -1,13 +1,69 @@
+let palyak = [
+    [ // 1. nehézség
+        [1, 1, 0, 1, 1],
+        [1, 0, 1, 0, 1],
+        [0, 1, 1, 1, 0],
+        [1, 0, 1, 0, 1],
+        [1, 1, 0, 1, 1]
+    ],
+    [ // 12.
+        [0, 0, 1, 1, 1],
+        [0, 0, 0, 1, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 0, 0, 0],
+        [1, 1, 1, 0, 0]
+    ],
+    [ // 10.
+        [1, 1, 1, 1, 1],
+        [0, 1, 1, 1, 0],
+        [0, 0, 1, 0, 0],
+        [0, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1]
+    ],
+    [ // 8? 
+        [0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 0],
+        [0, 1, 1, 1, 0],
+        [0, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0]
+    ],
+    [
+        [0, 0, 0, 0, 1],
+        [1, 1, 1, 0, 0],
+        [1, 0, 1, 1, 1],
+        [1, 1, 1, 1, 0],
+        [1, 0, 0, 1, 0]
+    ],
+    [
+        [0, 1, 1, 0, 0],
+        [0, 1, 1, 0, 1],
+        [0, 1, 0, 0, 1],
+        [1, 1, 0, 0, 0],
+        [1, 1, 1, 1, 0]
+    ]
+];
+
+
 class Game{
     constructor(difficulty=1){
         this._difficulty = difficulty;
-        this._GameSize = this._initGameSize();
+        this._GameSize = [5,5]; // 5x5 pálya
         // 2d array amiben tároljuk a pálya nagyságát és az értékeket
         this._GameTable = this._initGameTable();
-        this._moveCount = 0;
-        this._startTime = Date.now();
+        
+        this._currentTable = 1;
     }
 
+    // megváltoztatja a pályát az aktuális kijelöltre
+    changeGameTable(tableId){
+        this._currentTable =  palyak[tableId];
+        this._initGameTable();
+    }
+
+    // vissza adja a pályák számát
+    get getMaxTableNumber(){
+        return palyak.length;
+    }
 
     // ez fogja léptetni a következőre 
     move(x,y){
@@ -91,49 +147,41 @@ class Game{
         return this._moveCount;
     }
 
-    get difficulty(){
-        return this._difficulty;
-    }
 
-    // difficulty paraméter nehézségi szintet fejezi ki 1-3-ig; default: 1 ~ Könnyű
-    set difficulty(difficulty=1){
-        if(typeof difficulty === "number" && difficulty > 0 && difficulty <= 3){
-            this._difficulty = difficulty;
-        }
-    }
-
-
-    // játék tábla generálása véletlen pontokkal
+    // játék tábla beállítása a mostanira
     _initGameTable(){
-        let newTable = [];
+        this._moveCount = 0; // ide átkerültek mert ha pályát vált amúgy is nullázni kell!
+        this._startTime = Date.now();
+        let newTable = palyak[this._currentTable];
         console.log(this._GameSize)
-        for (let y = 0; y < this._GameSize[0]; y++) {
-            newTable.push([]);
-            for (let x = 0; x < this._GameSize[1]; x++) {
-                // Todo rnd genetáror a 0,1-esre
-                // TOdo 1-es amit el kell tüntetni, tehát ha csak 0 akkor win!
-                newTable[y][x] = 0;
-            }
-        }
         return newTable;
     }
+}
 
-    // páyla méter inicializálása a nehézség függvényében, vissza adja a pálya méretét [y,x]
-    _initGameSize(){
-        let size = [0,0];
-        switch (this._difficulty) {
-            case 1: // Könnyű (default)
-                size = [10,10];
-                break;
-            case 2: // közepes
-                size = [15,15];
-                break;
-            case 3: // Nehéz
-                size = [20,20];
-                break;
-            default:
-                break;
+
+class Scoreboard{
+    constructor() {
+        let scoreboard = JSON.parse(window.localStorage.getItem('scoreboard'));
+        if(scoreboard == null){
+            let newScore = [];  
+            this.scoreboard = newScore;
+            window.localStorage.setItem("scoreboard",JSON.stringify(newScore));
+        }else{
+            this.scoreboard = scoreboard; // array [["nev", lepes, timestamp]];
         }
-        return size;
+    }
+
+    set setScore(score){ // score: array["név", lepesek, timestamp]
+        this.scoreboard.push(score);
+        window.localStorage.setItem("scoreboard", JSON.stringify(this.scoreboard));
+    }
+
+    get getScoreboard(){
+        return this.scoreboard;
+    }
+
+    clearScoreboard(){
+        this.scoreboard = [];
+        window.localStorage.setItem("scoreboard", JSON.stringify(this.scoreboard));
     }
 }
