@@ -6,9 +6,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zrinyi Patrik</title>
     <script src="js/jquery.js"></script>
-    <script src="js/Game.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="js/bootstrap.bundle.js"></script>
+    <style>
+        #gameDiv .row > .col-md {
+            max-width: 100px;
+            max-height: 100px;
+            height: 100px;
+            width: 100px;
+            transition: background-color 500ms;
+        }
+        body{
+            color: white;
+        }
+    </style>
 </head>
-<body>
-    
+<body style="background-color: #212529;">
+    <div class="container">
+        <div id="loginDiv" class="d-flex justify-content-center mt-5">
+            <div class="col-md-6">    
+                <h3>Add meg a nevedet a folytatáshoz</h3>
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="nevFormInput" placeholder="Név">
+                </div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success" type="button" id="gameStartBtn">Játék megkezdése</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- d-none kell bele majd a classba -->
+    <div id="gameDiv" class="container mt-5">
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-6">
+                <h2 class="text-center">Üdvözöllek a játékban <span id="usernameWelcome"></span>!</h2>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="border rounded col-md-3 p-4 m-2">
+                <h5>Jelenlegi játék</h5>
+                <div class="row d-grid gap-2">
+                    <button class="btn btn-success" type="button">Megold</button>
+                    <button class="btn btn-danger" type="button">Visszaállítás</button>
+                    <button class="btn btn-warning" type="button">Véletlen Pálya</button>
+                    <button class="btn btn-info" type="button">Segítség</button>
+                </div>
+                <div class="row mt-4">
+                    <div class="col">
+                        <h5>Idő: <span id="idoScore"></span></h5>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <h5>Lépések: <span id="moveScore"></span></h5>
+                    </div>
+                </div>
+                <hr>
+                <h5>Scoreboard</h5>
+                <h6>Előzményeid:</h6>
+                <div id="scoreAppend">
+                    <div class="row">
+                        <div class="col">Lépés</div>
+                        <div class="col">Idő</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5" id="gameTable"></div>
+        </div>
+    </div>
+
+    <script src="js/Game.js"></script>
 </body>
 </html>
