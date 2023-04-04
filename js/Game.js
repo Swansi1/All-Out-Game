@@ -1,4 +1,4 @@
-let palyak = [
+const palyak = [
     [ // 1. nehézség
         [1, 1, 0, 1, 1],
         [1, 0, 1, 0, 1],
@@ -51,7 +51,7 @@ class Game{
         // this._GameTable = this._initGameTable();
         
         this._currentTable = 1;
-        this.changeGameTable(this._currentTable);
+        this.changeGameTable(1);
     }
 
     // megváltoztatja a pályát az aktuális kijelöltre
@@ -59,13 +59,22 @@ class Game{
         if(tableId == -1){
             tableId = this._currentTable;
         }
-        this._GameTable =  palyak[tableId];
+        this._currentTable = tableId;
+        this._GameTable = JSON.parse(JSON.stringify(palyak[tableId]));
         this._initGameTable();
     }
 
     // vissza adja a pályák számát
     get getMaxTableNumber(){
         return palyak.length;
+    }
+
+    get currentTable(){
+        return this._currentTable;
+    }
+
+    get startTime(){
+        return this._startTime;
     }
 
     getCurrentCell(x,y){
@@ -103,7 +112,16 @@ class Game{
         this._moveCount++; // +1 lépés
 
         // mivel nem nagyon a pályák ezért küldi vissza az egész pályát
+        if(gui.game.isGameFinished()){
+            // ha vége a gaménak akkor
+            return "finished";
+
+        }
         return this._GameTable; // vissza küldi az egész gametable-t bár elég lenne csak a változás, de biztos ami bizotos
+    }
+
+    get moveCount(){
+        return this._moveCount;
     }
 
     // Leelenőrzi, hogy a játék befejeződött-e, Igaz ha vége
@@ -132,12 +150,12 @@ class Game{
         }
 
         newY = y - 1;
-        if(newY > 0){ // lent
+        if(newY >= 0){ // lent
            szomszedok.lent = [x, newY, this._GameTable[newY][x]];
         }
 
         let newX = x - 1;
-        if(newX > 0){// balra
+        if(newX >= 0){// balra
             szomszedok.balra = [newX,y,this._GameTable[y][newX]];
         }
         newX = x + 1;
@@ -158,7 +176,7 @@ class Game{
     _initGameTable(){
         this._moveCount = 0; // ide átkerültek mert ha pályát vált amúgy is nullázni kell!
         this._startTime = Date.now();
-        let newTable = palyak[this._currentTable];
+        let newTable = JSON.parse(JSON.stringify(palyak[this._currentTable]));
         console.log(this._GameSize)
         return newTable;
     }
@@ -193,7 +211,9 @@ class Scoreboard{
         this.scoreboard = sorted;
     }
 
-    set setScore(score){ // score: array["név", lepesek, timestamp]
+    set setScore(score){ // score: array["name", lepesek,palyaID, startTimestamp, endTimestamp]
+        score.unshift(this._currentName);
+        console.log(score);
         this.scoreboard.push(score);
         window.localStorage.setItem("scoreboard", JSON.stringify(this.scoreboard));
     }
@@ -235,9 +255,9 @@ $("#gameStartBtn").click(function (e) {
    });
 });
 
-$(".col-md").hover(function () {
-    $(this).toggleClass("bg-primary");
- });
+let cellHoverFunc = function () {
+    $(this).toggleClass("bg-warning");
+ };
 
 
 // Controller
@@ -245,9 +265,12 @@ let gui = {};
 gui.scoreboard = new Scoreboard();
 gui.game = new Game();
 
-gui.scoreboard.getTimeFromTimestamp = function(timestamp){
+gui.scoreboard.getTimeFromTimestamp = function(timestamp,startTimestamp=0){
     // Az aktuális idő lekérése
-    const currentDate = new Date();
+    let currentDate = new Date();
+    if(startTimestamp != 0){
+        currentDate = new Date(startTimestamp);
+    }
         
     // Az eltelt idő kiszámítása milliszekundumban
     const elapsedTime = currentDate.getTime() - new Date(timestamp).getTime();
@@ -288,8 +311,8 @@ gui.setScoreboard = function (){
 
     let currentScore = gui.scoreboard.getScoreboard;
     for (let i = 0; i < currentScore.length; i++) {
-        const score = currentScore[i];
-        const [hours, minutes, seconds] = gui.scoreboard.getTimeFromTimestamp(score[2]);
+        const score = currentScore[i]; // array["name", lepesek,palyaID, startTimestamp, endTimestamp]
+        const [hours, minutes, seconds] = gui.scoreboard.getTimeFromTimestamp(score[3],score[4]);
         let stringTime = "";
         if(minutes == 0){
             stringTime = seconds + " másodperc";
@@ -314,17 +337,74 @@ gui.createTable = function () {
         let row = $(`<div class="row"></div>`);
         for (let x = 0; x < 5; x++) {
             let selected = gui.game.getCurrentCell(x,i) == 1 ? 'bg-primary' : '';
-            let col = $(`<div id="col${i}${x}" data-x="${x}" data-y="${i}" class="col-md border ${selected} rounded m-2"></div>`);
+            let col = $(`<div id="col${x}${i}" data-x="${x}" data-y="${i}" data-selected="${gui.game.getCurrentCell(x,i)}" class="col-md border ${selected} rounded m-2"></div>`);
             // onclick
-            $(col).click(function (){
-                console.log(this);
-            });
+            $(col).click(cellClickFunction);
 
-            $(col).hover(function(){
-                $(this).toggleClass("bg-primary");
-            });
+            $(col).hover(cellHoverFunc);
             $(row).append(col);
         }
         $("#gameTable").append(row);
     }
 }
+
+gui.reDrawTable = function(){
+    for (let y = 0; y < gui.game._GameSize[1]; y++) {
+        for (let x = 0; x < gui.game._GameSize[0]; x++) {
+            let selected = gui.game.getCurrentCell(x,y);
+            let currentColor = $(`#col${x}${y}`).hasClass('bg-primary');
+            if(currentColor == true){
+                // tehát ki van jelölve szóval ha a selected == 1 nem kell semmit csinálni
+                if(selected != 1){
+                    $(`#col${x}${y}`).removeClass('bg-primary');
+                }
+            }else{
+                if(selected == 1){
+                    $(`#col${x}${y}`).addClass('bg-primary');
+                }
+            }
+        }
+    }
+}
+
+
+let cellClickFunction = function(){
+    console.log(this);
+    let x = $(this).data("x");
+    let y = $(this).data("y");
+    console.log(x,y);
+    let moves = gui.game.move(x,y);
+    $("#moveScore").html(gui.game.moveCount);
+    if(moves === "finished"){
+        //TODO játék vége
+        console.log("VÉGE A JÁTÉKNAK!!!!")
+        let finishedTime = new Date();
+        gui.scoreboard.setScore = [gui.game.moveCount, gui.game.currentTable, gui.game.startTime, finishedTime];
+
+        // todo update scoreboard list wihout  page refresh
+    }
+    gui.reDrawTable();
+    // $(`#col${x}${y}`).addClass('bg-primary');
+}
+
+
+
+//Btn click methods
+
+$("#resetBtn").click(function () { 
+    gui.game.changeGameTable(); // reseteli a pályát
+    $("#moveScore").html(gui.game.moveCount);
+    gui.reDrawTable();
+});
+
+$("#rndTable").click(function () { 
+    let rndNumber = getRandomInt(gui.game.getMaxTableNumber);
+    gui.game.changeGameTable(rndNumber);
+    gui.reDrawTable();
+});
+
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+  }
+  
