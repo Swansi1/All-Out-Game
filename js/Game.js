@@ -83,7 +83,7 @@ class Game{
             tableId = this._currentTable;
         }
         if(tableId >= palyak.length){
-            tableId = 1;
+            tableId = 0;
         }
         $("#gameId").html(tableId);
         this._currentTable = tableId;
@@ -225,7 +225,7 @@ class Game{
         this._moveCount = 0; // ide átkerültek mert ha pályát vált amúgy is nullázni kell!
         this._startTime = Date.now();
         let newTable = JSON.parse(JSON.stringify(palyak[this._currentTable]));
-        console.log(this._GameSize)
+        // console.log(this._GameSize)
         return newTable;
     }
 }
@@ -261,7 +261,7 @@ class Scoreboard{
 
     set setScore(score){ // score: array["name", lepesek,palyaID, startTimestamp, endTimestamp]
         score.unshift(this._currentName);
-        console.log(score);
+        // console.log(score);
         this.scoreboard.push(score);
         this.scoreboardAll.push(score);
         window.localStorage.setItem("scoreboard", JSON.stringify(this.scoreboardAll));
@@ -294,7 +294,7 @@ $("#gameStartBtn").click(function (e) {
     audio.play();
     
     let nev = $("#nevFormInput").val();
-    console.log(nev);
+    // console.log(nev);
     gui.scoreboard.setName = nev; // játékos név beállítsáa
     $("#usernameWelcome").html(nev); // név beállítása
     gui.game.changeGameTable() // azért kell hogy nulláza a timert
@@ -465,7 +465,7 @@ let cellClickFunction = function(context,bot=false){
     gui.clickSound();
     let x = $(context).data("x");
     let y = $(context).data("y");
-    console.log(x,y);
+    // console.log(x,y);
     let moves = gui.game.move(x,y);
     $("#moveScore").html(gui.game.moveCount);
     if(moves === "finished"){

@@ -1,0 +1,16 @@
+#gameDiv .row>.col-sm {
+    max-width: 100px;
+    max-height: 100px;
+    height: 100px;
+    width: 100px;
+    transition: background-color 500ms;
+}
+
+body,
+.modal-content {
+    color: white;
+    background-color: #212529;
+}
+.table {
+    color:white;
+}
