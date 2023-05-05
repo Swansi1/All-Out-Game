@@ -6,40 +6,61 @@ const palyak = [
         [1, 0, 1, 0, 1],
         [1, 1, 0, 1, 1]
     ],
-    [ // 12.
-        [0, 0, 1, 1, 1],
-        [0, 0, 0, 1, 1],
-        [1, 0, 0, 0, 1],
-        [1, 1, 0, 0, 0],
-        [1, 1, 1, 0, 0]
+    [
+        [0, 1, 0, 1, 0],
+        [1, 1, 0, 1, 1],
+        [0, 1, 0, 1, 0],
+        [1, 0, 1, 0, 1],
+        [1, 0, 1, 0, 1]
     ],
-    [ // 10.
-        [1, 1, 1, 1, 1],
-        [0, 1, 1, 1, 0],
+    [
+        [1, 0, 0, 0, 1],
+        [1, 1, 0, 1, 1],
         [0, 0, 1, 0, 0],
-        [0, 1, 1, 1, 0],
+        [1, 0, 1, 0, 0],
+        [1, 0, 1, 1, 0]
+    ],
+    [
+        [1, 1, 0, 1, 1],
+        [0, 0, 0, 0, 0],
+        [1, 1, 0, 1, 1],
+        [0, 0, 0, 0, 1],
+        [1, 1, 0, 0, 0]
+    ],
+    [
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1],
         [1, 1, 1, 1, 1]
     ],
-    [ // 8? 
+    [
+        [0, 0, 0, 1, 1],
+        [0, 0, 0, 1, 1],
         [0, 0, 0, 0, 0],
-        [0, 1, 1, 1, 0],
-        [0, 1, 1, 1, 0],
-        [0, 1, 1, 1, 0],
-        [0, 0, 0, 0, 0]
-    ],
-    [
-        [0, 0, 0, 0, 1],
-        [1, 1, 1, 0, 0],
-        [1, 0, 1, 1, 1],
-        [1, 1, 1, 1, 0],
-        [1, 0, 0, 1, 0]
-    ],
-    [
-        [0, 1, 1, 0, 0],
-        [0, 1, 1, 0, 1],
-        [0, 1, 0, 0, 1],
         [1, 1, 0, 0, 0],
-        [1, 1, 1, 1, 0]
+        [1, 1, 0, 0, 0]
+    ]
+];
+
+const palyaSolv =  [
+    [ // x,y lépések, hogy hova 
+        [0,0], [4,0], [2,2], [0,4], [4,4]
+    ],
+    [
+        [1,1], [3,1], [0,4], [2,4], [4,4]
+    ],
+    [
+        [0,4], [2,4], [0,0], [4,0], [2,0], [2,1]
+    ],
+    [
+        [0,0], [4,0], [4,2], [0,2], [0,4]
+    ],
+    [
+        [0,1], [0,2], [0,4],[1,1],[1,2],[1,3],[2,2],[2,3],[2,4],[3,0],[3,1],[3,3],[3,4],[4,0],[4,1]
+    ],
+    [
+        [0,3], [0,4],[1,2],[1,3],[1,4],[2,1],[2,3],[3,0],[3,1],[3,2],[4,0],[4,1]
     ]
 ];
 
@@ -50,18 +71,45 @@ class Game{
         // 2d array amiben tároljuk a pálya nagyságát és az értékeket
         // this._GameTable = this._initGameTable();
         
-        this._currentTable = 1;
-        this.changeGameTable(1);
+        this._currentTable = 0;
+        this.autoSolve = false;
+        this.changeGameTable();
     }
 
     // megváltoztatja a pályát az aktuális kijelöltre
     changeGameTable(tableId=-1){
+        this.autoSolve = false;
         if(tableId == -1){
             tableId = this._currentTable;
         }
+        if(tableId >= palyak.length){
+            tableId = 1;
+        }
+        $("#gameId").html(tableId);
         this._currentTable = tableId;
         this._GameTable = JSON.parse(JSON.stringify(palyak[tableId]));
         this._initGameTable();
+    }
+
+    solve(){
+        this.autoSolve = true;
+        $("#solveMousePointer").show();
+        palyaSolv[this._currentTable].forEach(steps => {
+            let pos = $(`#col${steps[0]}${steps[1]}`).offset(); // top, left
+            $("#solveMousePointer").animate({
+                left: pos.left,
+                top: pos.top
+              }, 2000, function(){
+                // completed
+                this.autoSolve = false; // nincs jobb ötletem..
+                $(`#col${steps[0]}${steps[1]}`).mouseenter();
+                cellClickFunction($(`#col${steps[0]}${steps[1]}`),true);
+                setTimeout(() => {
+                    $(`#col${steps[0]}${steps[1]}`).mouseleave();  
+                }, 500);
+              });
+        });
+        
     }
 
     // vissza adja a pályák számát
@@ -92,7 +140,7 @@ class Game{
 
         // lépés, körülötte lévőket az ellenkező "színre állítja" és saját magát
         let szomszedok = this._getNeighbours(x,y);
-        console.log(szomszedok);
+        // console.log(szomszedok);
         // beállítja az ellenkező színre a pályát 
         // ha nem null 
         if(szomszedok.balra.length !== 0){
@@ -190,10 +238,10 @@ class Scoreboard{
         let scores = JSON.parse(window.localStorage.getItem('scoreboard'));
         if(scores == null){
             let newScore = [];  
-            this._scoreboardAll = newScore;
+            this.scoreboardAll = newScore;
             window.localStorage.setItem("scoreboard",JSON.stringify(newScore));
         }else{
-            this._scoreboardAll = scores; // array [["nev", lepes, timestamp]];
+            this.scoreboardAll = scores; // array [["nev", lepes, timestamp]];
         }
     }
 
@@ -202,8 +250,8 @@ class Scoreboard{
         this._currentName = name;
 
         let sorted = []; // 
-        for (let i = 0; i < this._scoreboardAll.length; i++) {
-            const element = this._scoreboardAll[i];
+        for (let i = 0; i < this.scoreboardAll.length; i++) {
+            const element = this.scoreboardAll[i];
             if(element[0] === name){
                 sorted.push(element);
             }
@@ -215,7 +263,8 @@ class Scoreboard{
         score.unshift(this._currentName);
         console.log(score);
         this.scoreboard.push(score);
-        window.localStorage.setItem("scoreboard", JSON.stringify(this.scoreboard));
+        this.scoreboardAll.push(score);
+        window.localStorage.setItem("scoreboard", JSON.stringify(this.scoreboardAll));
     }
 
     get getName(){
@@ -238,7 +287,12 @@ class Scoreboard{
 // GUI onclick methods
 
 $("#gameStartBtn").click(function (e) { 
+    $(this).prop('disabled',true);
     e.preventDefault();
+
+    var audio = $("#backgroundAudio")[0];
+    audio.play();
+    
     let nev = $("#nevFormInput").val();
     console.log(nev);
     gui.scoreboard.setName = nev; // játékos név beállítsáa
@@ -337,7 +391,7 @@ gui.createTable = function () {
         let row = $(`<div class="row"></div>`);
         for (let x = 0; x < 5; x++) {
             let selected = gui.game.getCurrentCell(x,i) == 1 ? 'bg-primary' : '';
-            let col = $(`<div id="col${x}${i}" data-x="${x}" data-y="${i}" data-selected="${gui.game.getCurrentCell(x,i)}" class="col-md border ${selected} rounded m-2"></div>`);
+            let col = $(`<div id="col${x}${i}" data-x="${x}" data-y="${i}" data-selected="${gui.game.getCurrentCell(x,i)}" class="col-sm border ${selected} rounded m-2"></div>`);
             // onclick
             $(col).click(cellClickFunction);
 
@@ -367,21 +421,78 @@ gui.reDrawTable = function(){
     }
 }
 
+gui.drawScoreTableAll = function () {
+    gui.scoreboard.scoreboardAll.forEach(score => {
+        let times = gui.scoreboard.getTimeFromTimestamp(score[3],score[4]);
+        let kiiras = "";
+        if(times[0] > 0){
+            kiiras += times[0] + " Óra ";
+        }
+        if(times[1] > 0){
+            kiiras += times[1] + " Perc ";
+        }
+        if(times[2] > 0){
+            kiiras += times[2] + " Másodperc";
+        }
+        let newScore = `
+            <tr>
+                <td>${score[0]}</td>
+                <td>${score[1]}</td>
+                <td>${score[2]}</td>
+                <td>${kiiras}</td>
+            </tr>`;
 
-let cellClickFunction = function(){
-    console.log(this);
-    let x = $(this).data("x");
-    let y = $(this).data("y");
+            $("#score_table").append(newScore);
+    });
+}
+
+gui.clickSound = function(){
+    new Audio("audio/click.mp3").play();
+};
+
+
+var targetsss;
+let cellClickFunction = function(context,bot=false){
+    targetsss = context;
+    if(context.type === "click"){
+        context = context.delegateTarget;
+    }
+    if(bot == false){
+        if (gui.game.autoSolve){
+            return; // ha solve be van kapcsolva akkor ne lehessen csinálni semmit
+        }
+    }
+    gui.clickSound();
+    let x = $(context).data("x");
+    let y = $(context).data("y");
     console.log(x,y);
     let moves = gui.game.move(x,y);
     $("#moveScore").html(gui.game.moveCount);
     if(moves === "finished"){
-        //TODO játék vége
-        console.log("VÉGE A JÁTÉKNAK!!!!")
-        let finishedTime = new Date();
-        gui.scoreboard.setScore = [gui.game.moveCount, gui.game.currentTable, gui.game.startTime, finishedTime];
+        gui.game.autoSolve = true; // ne kattingasson össze vissza
+        $("#game_hint").html("Gratulálok kijátszottad a pályát! Hamarosan továbblépsz a következő szintre!");
+        $("#game_hint").animate({
+            color: 'red'
+        },1000);
+        $("#solveMousePointer").hide();
+        if(!gui.game.autoSolve){
+            // ha nem volt az autosolve bekapcsolva csak akkor savelje a score-t
+            let finishedTime = new Date();
+            gui.scoreboard.setScore = [gui.game.moveCount, gui.game.currentTable, gui.game.startTime, finishedTime];
+        }
 
-        // todo update scoreboard list wihout  page refresh
+        // NEXT PALYA
+        setTimeout(() => {
+            gui.game.changeGameTable(gui.game.currentTable += 1);
+            $("#resetBtn").click(); // just reset
+            $("#game_hint").stop().animate({"color":'white'},1000);
+            $("#game_hint").html("");
+
+            $("#solveBtn").prop('disabled',false);
+            $("#resetBtn").prop('disabled',false);
+            $("#rndTable").prop('disabled',false);
+            $("#helpBtn").prop('disabled',false);
+        }, 5*1000); // 5sec
     }
     gui.reDrawTable();
     // $(`#col${x}${y}`).addClass('bg-primary');
@@ -403,8 +514,38 @@ $("#rndTable").click(function () {
     gui.reDrawTable();
 });
 
+$("#solveBtn").click(function () {
+    $(this).prop('disabled',true);
+    $("#resetBtn").prop('disabled',true);
+    $("#rndTable").prop('disabled',true);
+    $("#helpBtn").prop('disabled',true);
+
+    $("#resetBtn").click();
+    gui.game.solve();
+});
+
 
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
   }
   
+  $(document).ready(function(){
+    $("#solveMousePointer").hide();
+
+    gui.drawScoreTableAll()
+
+    $(".btn").click(function(e) {
+        gui.clickSound();
+      });
+
+  });
+
+
+// // background music start when page loaded
+// google policy 
+//! Uncaught (in promise) DOMException: play() failed because the user didn't interact with the document first. https://goo.gl/xX8pDD
+// $(document).ready(function(){
+//     var audio = $("#backgroundAudio")[0];
+//     audio.play();
+// });
+

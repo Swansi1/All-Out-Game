@@ -1,30 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zrinyi Patrik</title>
+    <title>Kötprog | Zrinyi Patrik</title>
     <script src="js/jquery.js"></script>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <script src="js/bootstrap.bundle.js"></script>
     <style>
-        #gameDiv .row > .col-md {
+        #gameDiv .row>.col-sm {
             max-width: 100px;
             max-height: 100px;
             height: 100px;
             width: 100px;
             transition: background-color 500ms;
         }
-        body{
+
+        body,
+        .modal-content {
             color: white;
+            background-color: #212529;
+        }
+        .table {
+            color:white;
         }
     </style>
 </head>
-<body style="background-color: #212529;">
-    <div class="container">
-        <div id="loginDiv" class="d-flex justify-content-center mt-5">
-            <div class="col-md-6">    
+
+<body>
+    <div class="container" id="loginDiv">
+        <div class="d-flex justify-content-center mt-5">
+            <div class="col-md-6">
                 <h3>Add meg a nevedet a folytatáshoz</h3>
                 <div class="mb-3">
                     <input type="text" class="form-control" id="nevFormInput" placeholder="Név">
@@ -34,23 +42,40 @@
                 </div>
             </div>
         </div>
+        <div class="d-flex justify-content-center mt-5">
+            <div class="col-md-6">
+                <div class="row">
+                    <h2>Toplista</h2>
+                    <table class="table" id="score_table">
+                        <tr>
+                            <th>Név</th>
+                            <th>Lépések</th>
+                            <th>Pálya szorszáma</th>
+                            <th>Idő</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- d-none kell bele majd a classba -->
-    <div id="gameDiv" class="container mt-5">
+    <div id="gameDiv" class="container mt-5 d-none">
         <div class="row justify-content-center mb-5">
             <div class="col-md-6">
                 <h2 class="text-center">Üdvözöllek a játékban <span id="usernameWelcome"></span>!</h2>
+                <h2 class="text-center" id="game_hint"></h2>
             </div>
         </div>
         <div class="row justify-content-center">
             <div class="border rounded col-md-3 p-4 m-2">
-                <h5>Jelenlegi játék</h5>
+                <h5>Jelenlegi játék (<span id="gameId"></span>)</h5>
                 <div class="row d-grid gap-2">
                     <button class="btn btn-success" type="button" id="solveBtn">Megold</button>
                     <button class="btn btn-danger" type="button" id="resetBtn">Visszaállítás</button>
                     <button class="btn btn-warning" type="button" id="rndTable">Véletlen Pálya</button>
-                    <button class="btn btn-info" type="button" id="helpBtn">Segítség</button>
+                    <button class="btn btn-info" type="button" id="helpBtn" data-bs-toggle="modal"
+                        data-bs-target="#gameHelpModal">Segítség</button>
                 </div>
                 <div class="row mt-4">
                     <div class="col">
@@ -76,6 +101,69 @@
         </div>
     </div>
 
+
+    <!-- Modalok  -->
+    <div class="modal fade" id="gameHelpModal" tabindex="-1" aria-labelledby="gameHelpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="gameHelpModalLabel">Játék leírása</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    All Out
+                    A játék célja, hogy a táblán minden lámpát eloltsunk. Ha rákattint egy darabra a táblán, megfordítja
+                    az adott
+                    bábu és minden szomszédos bábu állapotát. Ha „be” voltak, akkor „ki” állásba kapcsolnak. A nyeréshez
+                    csak meg
+                    kell győződnie arról, hogy az egész tábla ALLOUT. Játssz All Out játékot online mobiltelefonodon,
+                    táblagépeden
+                    vagy számítógépeden.
+                    Hogyan kell játszani
+                    Kattintson az egérrel vagy érintse meg a képernyőt a világítás kikapcsolásához.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Bezárás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="gameWinModal" tabindex="-1" aria-labelledby="gameWinModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="gameWinModalLabel">Győzelem</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Sikeresen kivitted az adott pályát, ha szeretnél a következő szintre lépni kattints a "következő"
+                    gombra!
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Bezárás</button>
+                    <button type="button" class="btn btn-primary">Következő</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <img src="images/arrow.png" id="solveMousePointer" style="
+    position: absolute;
+    top: 140px;
+    left: 600px;
+    max-width: 100px;
+">
+
+    <!-- <audio autoplay preload='auto' loop id="backgroundAudio">
+        <source src="audio/backgroundMusic.mp3" type="audio/mpeg">
+    </audio> -->
+    <!-- Azért ezzel mert a chrome nem engedi az audiot auto playelni policy miatt..  
+    Uncaught (in promise) DOMException: play() failed because the user didn't interact with the document first. https://goo.gl/xX8pDD-->
+    <audio controls autoplay loop hidden id="backgroundAudio">
+        <source src="audio/backgroundMusic.mp3" type="audio/mpeg">
+    </audio>
     <script src="js/Game.js?ver=1"></script>
 </body>
+
 </html>
